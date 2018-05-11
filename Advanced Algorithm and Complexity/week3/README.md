@@ -1,2 +1,2 @@
-Finish gsm_network!
-Finish cleaning_apartment!
+    Finish gsm_network!
+    Finish cleaning_apartment!
