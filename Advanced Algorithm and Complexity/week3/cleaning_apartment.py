@@ -2,25 +2,29 @@
 import subprocess
 import itertools
 import os
+
+
 n, m = map(int, input().split())
+
 edges = [ list(map(int, input().split())) for i in range(m) ]
+
 # Initialize the neighbourlist:
 neighbourList = [[] for i in range(n + 1)]
 for i in edges:
     neighbourList[i[0]].append(i[1])
     neighbourList[i[1]].append(i[0])
+
 clauses = []
 nodes = range(1, n + 1)
-def printEquisatisfiableSatFormula():
-    print("1 1")
-    print("-1 -1 0")
-def printNotEquisttisfiableSatFormula():
-    print('2 1')
-    print('1 0')
-    print('-1 0')
+dic = {}
 
 def varnum(i, j):
-    return n*(i) + j 
+    # print(i,j)
+    # print (n*i +j)
+    if n*(i) + j not in dic:
+        dic[n*(i) + j] = len(dic.keys())+1
+
+    return dic[n*(i) + j]
 
 #each node j must appear in the path
 for j in nodes:
@@ -30,7 +34,7 @@ for j in nodes:
 for (i,k) in itertools.combinations(nodes, 2):
         for j in nodes:
             clauses.append([-varnum(i, j), -varnum(k, j)]+ [0])
-            #clauses.append([-varnum(j, i), -varnum(j, k)]) 
+            #clauses.append([-varnum(j, i), -varnum(j, k)])
 
 #every position i on the path must be occupied
 #for i in nodes:
@@ -46,32 +50,12 @@ for (i,j) in itertools.product(nodes, repeat = 2):
         for k in range(1, n):
             clauses.append([-varnum(k, i), -varnum(k + 1, j)]+ [0])
             #clauses.append([-varnum(k, j), -varnum(k + 1, i)])
-            
-with open('tmp.cnf', 'w') as f:
-    f.write("p cnf {} {}\n".format(999, len(clauses)))
-    for c in clauses:
-        #c.append(0)
-        f.write(" ".join(map(str, c))+"\n")
 
-FNULL = open(os.devnull, 'w')
-retcode = subprocess.call(['minisat','tmp.cnf', 'tmp.sat'], stdout=FNULL, stderr=subprocess.STDOUT)
-#print(retcode)
-#retcode = os.system("'minisat' 'tmp.cnf' 'tmp.sat' > /dev/null")
-if retcode == 10:
-    printEquisatisfiableSatFormula()
-else:
-    printNotEquisttisfiableSatFormula()
-#print("==5 %s" %(time.time() - start_time));
-'''
-with open("tmp.sat", "r") as satfile:
-   first_line =satfile.readline()
-#print(first_line)
-if first_line == "UNSAT\n":
-    printNotEquisttisfiableSatFormula()
-elif first_line == "SAT\n":
-    printEquisatisfiableSatFormula()
-'''
-#print("==6 %s" %(time.time() - start_time));
-# This solution prints a simple satisfiable formula
-# and passes about half of the tests.
-# Change this function to solve the problem.
+
+print(len(clauses),len(dic.keys()))
+# print(dic)
+for clause in clauses:
+    str1 = ' '.join(str(c) for c in clause)
+    print(str1)
+
+
