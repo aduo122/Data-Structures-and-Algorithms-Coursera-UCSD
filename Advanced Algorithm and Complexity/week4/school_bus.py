@@ -22,25 +22,40 @@ def optimal_path(graph):
     # This solution tries all the possible sequences of stops.
     # It is too slow to pass the problem.
     # Implement a more efficient algorithm here.
+    # print(graph)
+    allS = tuple(range(1,len(graph)))
     n = len(graph)
     best_ans = INF
     best_path = []
+    # dic to store {S,i}
+    dic = {}
 
-    for p in permutations(range(n)):
-        cur_sum = 0
-        for i in range(1, n):
-            if graph[p[i - 1]][p[i]] == INF:
-                break
-            cur_sum += graph[p[i - 1]][p[i]]
-        else:
-            if graph[p[-1]][p[0]] == INF:
-                continue
-            cur_sum += graph[p[-1]][p[0]]
-            if cur_sum < best_ans:
-                best_ans = cur_sum
-                best_path = list(p)
+    def helper(S,i):
+        if (S,i) in dic:
+            return dic[((S,i))]
+        if not S:
+            return [0,[]]
+        res = float('inf')
+        res_p = []
+        for node in S:
+            t_S = list(S)
+            t_S.remove(node)
+            temp = helper(tuple(t_S),node)
+            d = temp[0] + graph[i][node]
+            path = temp[1]
+            if d < res:
+                res = d
+                path.append(node)
+                res_p = path
+        dic[(S,i)] = [res,res_p]
+        return [res,res_p]
 
-    if best_ans == INF:
+    best_ans,best_path = helper(allS,0)
+    best_ans += graph[best_path[0]][0]
+    best_path = [0] + best_path
+
+
+    if best_ans >= INF:
         return (-1, [])
     return (best_ans, [x + 1 for x in best_path])
 
