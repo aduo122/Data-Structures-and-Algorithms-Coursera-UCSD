@@ -24,23 +24,37 @@ def ReadTree():
     return tree
 
 
-def dfs(tree, vertex, parent):
-    for child in tree[vertex].children:
-        if child != parent:
-            dfs(tree, child, vertex)
+def dfs(tree,vertex,parent):
+    # for child in tree[vertex].children:
+    #     if child != parent:
+    #         dfs(tree, child, vertex)
 
     # This is a template function for processing a tree using depth-first search.
     # Write your code here.
     # You may need to add more parameters to this function for child processing.
 
+    children = vertex.children
+    if not children:
+        return [vertex.weight,0]
+    c_withV = vertex.weight
+    c_withoutV = 0
+    for child in children:
+        if tree[child] != parent:
+            t1,t2 = dfs(tree, tree[child],vertex)
+            c_withV += max(0,t2)
+            c_withoutV += max(0,t1,t2)
+
+    return [c_withV,c_withoutV]
 
 def MaxWeightIndependentTreeSubset(tree):
     size = len(tree)
     if size == 0:
         return 0
-    dfs(tree, 0, -1)
+    root = tree[0]
+    t = dfs(tree,root,Vertex(None))
+    res = max(t)
     # You must decide what to return.
-    return 0
+    return res
 
 
 def main():
