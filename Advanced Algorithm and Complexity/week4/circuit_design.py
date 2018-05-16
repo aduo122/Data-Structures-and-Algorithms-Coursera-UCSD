@@ -1,105 +1,87 @@
 # python3
+import sys
+import threading
+
+sys.setrecursionlimit(10**7)
+threading.stack_size(2**27)
+
+sys.setrecursionlimit(10**7)
+threading.stack_size(2**27)
+
+
 n, m = map(int, input().split())
-clauses = [ list(map(int, input().split())) for i in range(m) ]
+clauses = [list(map(int, input().split())) for i in range(m)]
+count = 0
 
-#学习一个图遍历！
-class graph:
-    def __init__(self, adj):
-        self.SCCgroup = [0 for i in range(len(adj))]
-        self.post = [0 for i in range(len(adj))]
-        self.visitedList = [0 for i in range(len(adj))]
-        self.clockWise = 0
-        self.adj = adj
-        self.SCCnumber = {}
-        self.SCCclock = 0
 
-    def explore(self, v):
-        self.visitedList[v] = 1
-        self.clockWise += 1
-        for i in self.adj[v]:
-            if self.visitedList[i] == 0:
-                self.explore(i)
-        self.post[v] = self.clockWise
-        self.clockWise += 1
-
-    def explore_SCC(self, v, adj):
-        # print(v)
-        self.visitedList[v] = 1
-        self.SCCgroup[v] = 0
-        self.SCCnumber[v] = self.SCCclock
-        for i in adj[v]:
-            if self.visitedList[i] == 0:
-                self.explore_SCC(i, adj)
-
-    def DFS_postoder(self):
-        for i in range(len(self.adj)):
-            if self.visitedList[i] == 0:
-                self.explore(i)
-
-    def acyclic(self, postOrder, adj):
-        numberOfSCC = 0
-        # Reset the visted list to use for the main graph:
-        self.visitedList = [0 for i in range(len(self.adj))]
-        self.SCCgroup = postOrder
-
-        while max(self.SCCgroup) != 0:
-            i = self.SCCgroup.index(max(self.SCCgroup))
-            self.explore_SCC(i, adj)
-            self.SCCclock += 1
-            numberOfSCC += 1
-        for i in range(n):
-            if self.SCCnumber[i] == self.SCCnumber[i + n]:
-                return None
-        satList = [0 for i in range(n)]
-        sortedSCCnumber = sorted(self.SCCnumber, key=self.SCCnumber.get)
-        for i in sortedSCCnumber:
-            if i <= n - 1 and satList[i] == 0:
-                satList[i] = i + 1
-            elif i > n - 1 and satList[i - n] == 0:
-                satList[i - n] = n - i - 1
-        return satList
-
-# This solution tries all possible 2^n variable assignments.
-# It is too slow to pass the problem.
-# Implement a more efficient algorithm here.
 def isSatisfiable():
-    negAdj = [[] for _ in range(2*n)]
-    for clause in clauses:
-        c1 = clause[0]
-        c2 = clause[1]
-        # two nodes are same n to n`
-        if c1 == c2:
-            if c1 >= 0:
-                negAdj[c1 -1].append(n + c1 - 1)
-            else:
-                negAdj[n-c1-1].append(-c1-1)
-            continue
-        if c1 >= 0:
-            if c2 >= 0:
-                negAdj[c2-1].append(n+c1-1)
-                negAdj[c1-1].append(n+c2-1)
-            else:
-                negAdj[n-c2-1].append(n+c1-1)
-                negAdj[c1-1].append(-c2-1)
-        else:
-            if c2 >= 0:
-                negAdj[c2-1].append(-c1-1)
-                negAdj[n-c1-1].append(n+c2-1)
-            else:
-                negAdj[n-c2-1].append(-c1-1)
-                negAdj[n-c1-1].append(-c2-1)
-    adj = [[] for _ in range(2*n)]
-    for i in range(len(negAdj)):
-        for j in negAdj[i]:
-            adj[j].append(i)
+    global count
 
-    t = graph(negAdj)
-    t.DFS_postoder()
-    return t.acyclic(t.post,adj)
+    def dfs1(i):
+        visited[i] = True
+        for j in gV[i]:
+            if not visited[j]:
+                dfs1(j)
+        postvisit.append(i)
 
-result = isSatisfiable()
-if result is None:
-    print("UNSATISFIABLE")
-else:
-    print("SATISFIABLE");
-    print(" ".join(str(-i-1 if result[i] else i+1) for i in range(n)))
+    def dfs2(x):
+        global count
+        CCS[x] = count
+        for j in gReverseV[x]:
+            if CCS[j] == -1:
+                dfs2(j)
+
+    g = []
+    for i in clauses:
+        g.append([-i[0], i[1]])
+        g.append([-i[1], i[0]])
+
+
+    lst = list(range(-n, 0)) + list(range(1, n + 1))
+    gReverseEdges = []
+    gReverseV = {i: [] for i in lst}
+    gV = {i: [] for i in lst}
+    for i in g:
+        gReverseEdges.append([i[1], i[0]])
+    for i in gReverseEdges:
+        gReverseV[i[0]] += [i[1]]
+    gV = {i: [] for i in lst}
+    for i in g:
+        gV[i[0]] += [i[1]]
+    CCS = {i: -1 for i in lst}
+    postvisit = []
+    visited = {i: False for i in lst}
+
+    for i in lst:
+        if not visited[i]:
+            dfs1(i)
+
+    postvisit.reverse()
+    for i in postvisit:
+        if CCS[i] == -1:
+            dfs2(i)
+            count += 1
+
+    for i in range(1, n + 1):
+        if CCS[i] == CCS[-i]:
+            return
+
+    result = {i: -1 for i in lst}
+
+    for i in postvisit:
+        if result[i] == -1:
+            result[i] = 1
+            result[-i] = 0
+
+    return result
+
+def main():
+    result = isSatisfiable()
+    if result == None:
+        print("UNSATISFIABLE")
+    else:
+        print("SATISFIABLE");
+        # print(result)
+        print(" ".join(str(-i * (result[i]*2-1)) for i in range(1,n+1)))
+
+threading.Thread(target=main).start()
