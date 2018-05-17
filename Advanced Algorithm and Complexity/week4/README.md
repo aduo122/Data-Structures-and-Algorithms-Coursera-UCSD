@@ -1,3 +1,3 @@
-    Finished curcuit
-    Finished party
-    Finished bus
+    Finished circuit_design
+    Finished plan_party
+    Finished bus_route
