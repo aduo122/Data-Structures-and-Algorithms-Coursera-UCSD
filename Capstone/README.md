@@ -1,1 +1,2 @@
-Capstone projects
+    Capstone projects
+    Finish Week 1 Scequencing
